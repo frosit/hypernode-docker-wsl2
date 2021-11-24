@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+#######################################
+# hypernode-docker WSL Tools - Fabio Ros
+# =====================================
+# DESCRIPTION:
+# Sourcing this file will enable specific functionality for the hn docker setup.
+# It will add and make changes to the environment to adjust it to our case without harming the environment.
+#
+# USAGE: source this file in .profile/.bash_profile/.bashrc.
+#
+# EXAMPLE: if [[ -d "/data/web/.wsl" ]]; then source "/data/web/.wsl/.wsl"; fi
+#
+# TO DO:
+# * better logging
+# * handling services + versions (php)
+# * allow to run with user preferences (zsh as default, default php/mods, use mysql from hypernode or custom containers etc)
+#######################################
+
+#######################################
+# Set generic variables
+#######################################
+export HNWSL_LOG=false
+export HNWSL_DEBUG=false
+
+#######################################
+# Load HNWSL
+#######################################
+export HNWSL_HOME=/data/web # Define home for root @todo modify all $HNWSL_HOME to $HNWSL_HOME
+export HNWSL_SRC=$HNWSL_HOME/.wsl # Set our home, also allows to detect whether hnwsl has loaded
+export HNWSL_DEBUG=${HNWSL_DEBUG:-true} # can be overriden in main .env
+export HNWSL_LOG=${HNWSL_LOG:-true} # can be overriden in main .env
+export HNWSL_LOG_FILE=${HNWSL_HOME}/.hnwsl.log
+
+#######################################
+# Loads global functions from lib, like debug functions
+# after this, functions like hnwsl::log are available
+if [ -d $HNWSL_HOME/.wsl/lib ]; then
+    for item in $(ls $HNWSL_HOME/.wsl/lib ); do
+        . $HNWSL_HOME/.wsl/lib/${item}
+    done
+else
+    echo -e "ERROR: HNWSL lib could not be loaded!"
+fi
+
+
+# add HNWSL bin directory to path
+if [ -d "$HNWSL_HOME/.wsl/bin" ] ; then
+    PATH="$PATH:$HNWSL_HOME/.wsl/bin"
+fi
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/bin" ] ; then
+    PATH="$HOME/bin:$PATH"
+fi
+
+# set PATH so it includes user's private bin if it exists
+if [ -d "$HOME/.local/bin" ] ; then
+    PATH="$HOME/.local/bin:$PATH"
+fi
+
+
+#######################################
+# Run provisioning scripts from init.d
+# if [[ -d "${HNWSL_HOME/.hnwsl/init.d}" ]]; then
+#     for item in $(ls $HNWSL_HOME/.hnwsl/init.d/*.sh); do
+#         hnwsl::log "Provisioning: ${item}" INFO
+#         . ${item}
+#     done
+# fi

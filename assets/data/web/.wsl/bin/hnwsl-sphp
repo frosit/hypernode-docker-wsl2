@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+#
+#   FROSCLI - a personal multi-platform Command Line Interface Abstraction layer
+#   ----------------------------------------------------------------------------
+#
+#      ~ Copyright (c) 2017 Fabio Ros
+#
+# ===================================
+
+VERSION="1.0.0"
+SCRIPT=${0##*/}
+USAGE="\
+Switch PHP - ${VERSION}
+
+This script helps you switch between PHP versions.
+
+Usage: ${SCRIPT} [--option=...|-o=...] [arg]
+
+    -h, --help                   Show this help menu
+
+    list                         Show available versions
+    set <version>                Switches to <version> e.g: ${SCRIPT} set 7.0
+
+"
+
+if [[ "$1" == "-h" || "$1" == "--help" || $# -eq 0 ]]; then
+    echo -e "$USAGE"
+    exit
+fi
+
+# Define argument
+arg=$1;shift
+
+#######################################
+# List available PHP versions
+# @todo [issue]: current detection is wrong
+#######################################
+function list(){
+    local currentversion=$(php -r "echo PHP_MAJOR_VERSION.'.'.PHP_MINOR_VERSION;")
+    echo -e "Available PHP versions:"
+    for version in $(update-alternatives --list php); do
+        if [[ ${version} = *"${currentversion}"* ]]; then
+            echo -e "* $(basename $version | sed -s 's/php//') (current)"
+        else
+            echo -e "* $(basename $version | sed -s 's/php//')"
+        fi
+    done
+    echo -e "\nRun '$(basename $0) set x.x' to switch versions"
+}
+
+
+#######################################
+# Set different PHP version
+# Arguments:
+#   PHP Version
+#######################################
+function set(){
+
+    # Check for input
+    if [ -z ${1+x} ]; then
+        echo -e "No PHP version given..."
+        exit
+    fi
+
+    local _phpv=$1; shift
+
+    # Build versions list
+    local versions=""
+    for version in $(update-alternatives --list php); do
+        versions+="$(basename ${version} | sed -s 's/php//') "
+    done
+
+    # Check if version exists
+    if [[ $versions =~ (^|[[:space:]])"$_phpv"($|[[:space:]]) ]]; then
+
+        echo -e "Selected php${_phpv}"
+
+        # Change symlinks
+        sudo update-alternatives --set php $(which php${_phpv})
+
+        echo "Killing any old NGINX service"
+        sudo pkill -f /usr/sbin/nginx || /bin/true
+        echo "Killing any old PHP-FPM service"
+        sudo pkill -f php-fpm || /bin/true
+
+        # Giving the services some time to stop
+        echo "Giving any old services 5 seconds to stop.."
+        sleep 5
+        sudo -u root screen -wipe
+
+        # Starting services
+        echo "Starting new detached hypernode services. See screen -x"
+        echo "Starting NGINX"
+        sudo -u root /usr/bin/screen -S hypernode_service_nginx -d -m /usr/sbin/nginx -g 'daemon off; master_process on;'
+        echo "Starting PHP"
+        sudo -u root /usr/bin/screen -S hypernode_service_php -d -m /usr/sbin/php-fpm${_phpv} --nodaemonize --fpm-config /etc/php/${_phpv}/fpm/php-fpm.conf
+
+        # Wait until started
+        echo -e "Giving services some time to get back up..."
+        sleep 5
+        echo -e "Done!"
+    else
+        echo -e "PHP Version ${_phpv} is not installed, exiting..."
+        exit
+    fi
+}
+
+${arg%%/} $@
