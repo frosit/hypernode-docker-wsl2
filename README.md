@@ -88,6 +88,9 @@ sudo service nginx start
 sudo service php7.2-fpm start
 sudo service mysql.distrib start
 sudo service redis-server start
+
+# or
+sudo /etc/my_init.d/60_restart_services.sh
 ```
 
 Then you can find your instance on http://localhost.
@@ -106,11 +109,13 @@ The `projector` command has options to manage projector IDE's. To install use `p
 
 > note: projector is also new and slightly unstable. It should come on port 9999 of localhost
 
-## Install xDebug
+## Other features
 
-To install run: `sudo apt install php-xdebug`. xdebug should be available right away.
+Look for more features in the [docs folder](/docs) on subjects like:
 
-@todo PhpStorm configurations
+* xDebug
+* Using the Windows SSH agent
+* Setting up Let's encrypt
 
 # Issues
 

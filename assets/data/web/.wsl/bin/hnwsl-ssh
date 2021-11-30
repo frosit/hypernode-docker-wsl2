@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#
+#   FROSCLI - a personal multi-platform Command Line Interface Abstraction layer
+#   ----------------------------------------------------------------------------
+#
+#      ~ Copyright (c) 2017 Fabio Ros
+#
+# ===================================
+
+VERSION="1.0.0"
+SCRIPT=${0##*/}
+USAGE="\
+SSH AUTH Socat - ${VERSION}
+
+Allows SSH_AUTH_SOCKET integration
+
+Usage: ${SCRIPT} [--option=...|-o=...] [arg]
+
+    -h, --help                   Show this help menu
+
+    isrunning                     check if windows ssh agent is running
+    start                         start listening and create socket
+
+"
+
+if [[ "$1" == "-h" || "$1" == "--help" || $# -eq 0 ]]; then
+    echo -e "$USAGE"
+    exit
+fi
+
+# Define argument
+arg=$1;shift
+
+#######################################
+# List available PHP versions
+# @todo [issue]: current detection is wrong
+#######################################
+function isrunning(){
+  RUNNING=$(powershell.exe -command "Get-Service ssh-agent" | grep -iq "Running")
+  if [[ $? -eq 1 ]]; then
+      echo -e "The Windows ssh-agent is not running"
+  else
+    echo -e "The windows SSH agent is running"
+  fi
+
+  if [ -z ${SSH_AUTH_SOCK+x} ]; then
+      echo -e "SSH_AUTH_SOCK is specified: ${SSH_AUTH_SOCK}"
+  fi
+
+  ss -a | grep -q $SSH_AUTH_SOCK
+  if [ $? -ne 0   ]; then
+      echo -e "process not started, reloading your shell"
+  else
+    echo -e "socat process is listening"
+  fi
+}
+
+function start(){
+  export SSH_AUTH_SOCK=$HOME/.ssh/agent.sock
+  ss -a | grep -q $SSH_AUTH_SOCK
+  if [ $? -ne 0   ]; then
+      rm -f $SSH_AUTH_SOCK
+      ( setsid socat UNIX-LISTEN:$SSH_AUTH_SOCK,fork EXEC:"npiperelay.exe -ei -s //./pipe/openssh-ssh-agent",nofork & ) >/dev/null 2>&1
+  fi
+}
+
+${arg%%/} $@

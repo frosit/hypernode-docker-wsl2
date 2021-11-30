@@ -17,6 +17,7 @@ RUN usermod -aG root app
 ADD --chown=1000:1000 assets/data/web/.wsl /data/web/.wsl
 # add default .projector config
 ADD --chown=1000:1000 assets/data/web/.projector /data/web/.projector
+ADD --chown=1000:1000 assets/data/web/.ssh/config /data/web/.ssh/config
 
 # add custom aliases
 ADD --chown=1000:1000 assets/data/web/.bash_aliases /data/web/

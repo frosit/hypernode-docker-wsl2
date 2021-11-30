@@ -28,8 +28,16 @@ export HNWSL_DEBUG=false
 export HNWSL_HOME=/data/web # Define home for root @todo modify all $HNWSL_HOME to $HNWSL_HOME
 export HNWSL_SRC=$HNWSL_HOME/.wsl # Set our home, also allows to detect whether hnwsl has loaded
 export HNWSL_DEBUG=${HNWSL_DEBUG:-true} # can be overriden in main .env
+
 export HNWSL_LOG=${HNWSL_LOG:-true} # can be overriden in main .env
 export HNWSL_LOG_FILE=${HNWSL_HOME}/.hnwsl.log
+
+export HNWSL_SSH_AUTH_SOCK=${HNWSL_SSH_AUTH_SOCK:-false} # can be overriden in main .env
+
+# @todo test
+set -a
+[ -f ${HNWSL_SRC}.env ] && . ${HNWSL_SRC}.env
+set +a
 
 #######################################
 # Loads global functions from lib, like debug functions
@@ -58,12 +66,12 @@ if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
-
-#######################################
-# Run provisioning scripts from init.d
-# if [[ -d "${HNWSL_HOME/.hnwsl/init.d}" ]]; then
-#     for item in $(ls $HNWSL_HOME/.hnwsl/init.d/*.sh); do
-#         hnwsl::log "Provisioning: ${item}" INFO
-#         . ${item}
-#     done
-# fi
+# forward ssh auth sock
+if [[ ${HNWSL_SSH_AUTH_SOCK} == true ]]; then
+  export SSH_AUTH_SOCK=$HOME/.ssh/agent.sock
+  ss -a | grep -q $SSH_AUTH_SOCK
+  if [ $? -ne 0   ]; then
+      rm -f $SSH_AUTH_SOCK
+      ( setsid socat UNIX-LISTEN:$SSH_AUTH_SOCK,fork EXEC:"npiperelay.exe -ei -s //./pipe/openssh-ssh-agent",nofork & ) >/dev/null 2>&1
+  fi
+fi

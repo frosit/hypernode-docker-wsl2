@@ -17,4 +17,14 @@ Output your `$PATH` using `echo $PATH` and see if there are `Windows` entries in
 
 Make sure the directory under `/mnt/wslg/.X11-unix` exists. If not, report this issue.
 
-@todo add fixes
+## IPV6 / VPN
+
+https://unix.stackexchange.com/questions/589683/wsl-dns-not-working-when-connected-to-vpn
+
+## Firewall
+
+https://github.com/microsoft/WSL/issues/4150#issuecomment-504209723
+
+## hostnames
+
+https://github.com/shayne/go-wsl2-host

@@ -7,6 +7,9 @@ build-container:
 pull-container:
 	docker pull frosit/hypernode-docker-wsl:${CONTAINER_VERSION} .
 
+tag-latest:
+	docker image tag frosit/hypernode-docker-wsl:${CONTAINER_VERSION} frosit/hypernode-docker-wsl:latest
+
 create:
 	docker create --name hnwslv${CONTAINER_VERSION} frosit/hypernode-docker-wsl:${CONTAINER_VERSION} 
 
