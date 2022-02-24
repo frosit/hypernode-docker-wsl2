@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+if [[ "$1" == "-h" || "$1" == "--help" || ! ${1+x} ]]; then cat <<HELP
+opens a file or folder
+
+Usage: $(basename "$0") [item]
+
+opens stuff
+
+Copyright (c) 2018 "FROSIT" Fabio Ros
+Licensed under the MIT license.
+http://frosit.nl
+HELP
+exit; fi
+
+# Check if file or folder exists
+if [[ ! -d ${1} && ! -f ${1} ]]; then
+    echo -e "File or folder ${1} not found."
+    exit;
+fi
+
+# open folder
+if [[ -d ${1} ]]; then
+    explorer.exe "${1}"
+
+   # open file 
+elif [[ -f ${1} ]]; then
+    WINPATH=$(wslpath -w ${1})
+    cmd.exe /c start ${WINPATH}
+else
+    echo -e "something happened, try xopen command"
+    exit 1;
+fi
+
+

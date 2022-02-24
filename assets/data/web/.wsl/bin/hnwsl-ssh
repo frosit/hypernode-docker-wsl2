@@ -18,8 +18,8 @@ Usage: ${SCRIPT} [--option=...|-o=...] [arg]
 
     -h, --help                   Show this help menu
 
-    isrunning                     check if windows ssh agent is running
-    start                         start listening and create socket
+    check                     check if windows ssh agent is running
+    start                     start listening and create socket
 
 "
 
@@ -33,35 +33,52 @@ arg=$1;shift
 
 #######################################
 # List available PHP versions
-# @todo [issue]: current detection is wrong
+#
+# Checks whether the integration requirements are present
 #######################################
-function isrunning(){
+function check(){
+
+  # check if agent runs on windows host
   RUNNING=$(powershell.exe -command "Get-Service ssh-agent" | grep -iq "Running")
   if [[ $? -eq 1 ]]; then
-      echo -e "The Windows ssh-agent is not running"
+      echo -e "The Windows ssh-agent is not running, open a admin powershell terminal and run:"
+      echo -e "> Start-Service ssh-agent"
+      echo -e "You can add keys to the agent using:"
+      echo -e "> ssh-add.exe .ssh/id_rsa"
   else
     echo -e "The windows SSH agent is running"
   fi
 
+ KEYS=$(ssh-add.exe -l | grep -q agent)
+  if [ $? -eq 0   ]; then # has no keys
+    echo -e "Install your keys using ssh-add"
+  fi
+
+  # Check if socket is specified
   if [ -z ${SSH_AUTH_SOCK+x} ]; then
       echo -e "SSH_AUTH_SOCK is specified: ${SSH_AUTH_SOCK}"
   fi
 
   ss -a | grep -q $SSH_AUTH_SOCK
   if [ $? -ne 0   ]; then
-      echo -e "process not started, reloading your shell"
+      echo -e "process not started, reloading your shell or run start"
   else
-    echo -e "socat process is listening"
+    echo -e "socat process is listening, ssh should be good"
   fi
 }
 
+#######################################
+# start socat, don't check conditions
+#
+#######################################
 function start(){
   export SSH_AUTH_SOCK=$HOME/.ssh/agent.sock
-  ss -a | grep -q $SSH_AUTH_SOCK
-  if [ $? -ne 0   ]; then
+  #ss -a | grep -q $SSH_AUTH_SOCK
+  #if [ $? -ne 0   ]; then
       rm -f $SSH_AUTH_SOCK
       ( setsid socat UNIX-LISTEN:$SSH_AUTH_SOCK,fork EXEC:"npiperelay.exe -ei -s //./pipe/openssh-ssh-agent",nofork & ) >/dev/null 2>&1
-  fi
+  #fi
 }
+
 
 ${arg%%/} $@

@@ -31,15 +31,15 @@ The WSL environment is build from a slightly modified hypernode-docker container
 
 __1. Create the image__
 
-First we have to create the image by pulling it or building it ourselves.
+First we have to create the image by _pulling_ it or _building_ it ourselves.
 
-__Option: 1.a: pull the latest image__
+__Option: 1.a: _pull_ the latest image__
 
 ```bash
 docker pull frosit/hypernode-docker-wsl:latest
 ```
 
-__Option: 1.b: build the image yourself__
+__Option: 1.b: _build_ the image yourself__
 
 ```bash
 # or make build-container
@@ -116,6 +116,7 @@ Look for more features in the [docs folder](/docs) on subjects like:
 * xDebug
 * Using the Windows SSH agent
 * Setting up Let's encrypt
+* helper scripts (open, xopen, pbcopy.sh, pbpaste.sh)
 
 # Issues
 

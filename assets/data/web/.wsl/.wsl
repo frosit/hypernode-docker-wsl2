@@ -19,8 +19,8 @@
 #######################################
 # Set generic variables
 #######################################
-export HNWSL_LOG=false
-export HNWSL_DEBUG=false
+# export HNWSL_LOG=true
+# export HNWSL_DEBUG=true
 
 #######################################
 # Load HNWSL
@@ -32,11 +32,10 @@ export HNWSL_DEBUG=${HNWSL_DEBUG:-true} # can be overriden in main .env
 export HNWSL_LOG=${HNWSL_LOG:-true} # can be overriden in main .env
 export HNWSL_LOG_FILE=${HNWSL_HOME}/.hnwsl.log
 
-export HNWSL_SSH_AUTH_SOCK=${HNWSL_SSH_AUTH_SOCK:-false} # can be overriden in main .env
+# export HNWSL_SSH_AUTH_SOCK=${HNWSL_SSH_AUTH_SOCK} # can be overridden in main .env
 
-# @todo test
 set -a
-[ -f ${HNWSL_SRC}.env ] && . ${HNWSL_SRC}.env
+[ -f ${HNWSL_SRC}/.env ] && . ${HNWSL_SRC}/.env
 set +a
 
 #######################################
@@ -66,11 +65,17 @@ if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
 
+# set path to windows home
+if [[ ! -z ${HNWSL_WIN_USERDIR+x} ]]; then
+    hnwsl::setwinhome
+fi
+
 # forward ssh auth sock
 if [[ ${HNWSL_SSH_AUTH_SOCK} == true ]]; then
   export SSH_AUTH_SOCK=$HOME/.ssh/agent.sock
   ss -a | grep -q $SSH_AUTH_SOCK
   if [ $? -ne 0   ]; then
+  hnwsl::log "starting ssh integration"
       rm -f $SSH_AUTH_SOCK
       ( setsid socat UNIX-LISTEN:$SSH_AUTH_SOCK,fork EXEC:"npiperelay.exe -ei -s //./pipe/openssh-ssh-agent",nofork & ) >/dev/null 2>&1
   fi

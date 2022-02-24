@@ -44,6 +44,11 @@ function hnwsl::log(){
     fi
 }
 
+# info
+function hnwsl::warning(){
+    hnwsl::log "${1}" "WARNING"
+}
+
 # Shorthand for error
 function hnwsl::warning(){
     hnwsl::log "${1}" "WARNING"
